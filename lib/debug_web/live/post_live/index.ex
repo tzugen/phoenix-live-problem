@@ -6,6 +6,7 @@ defmodule DebugWeb.PostLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket), do: Blog.subscribe()
     {:ok, stream(socket, :posts, Blog.list_posts())}
   end
 
@@ -35,6 +36,16 @@ defmodule DebugWeb.PostLive.Index do
   @impl true
   def handle_info({DebugWeb.PostLive.FormComponent, {:saved, post}}, socket) do
     {:noreply, stream_insert(socket, :posts, post)}
+  end
+
+  @impl true
+  def handle_info({:post_created, post}, socket) do
+    {:noreply, stream_insert(socket, :posts, post, at: 0)}
+  end
+
+  @impl true
+  def handle_info({:post_updated, post}, socket) do
+    {:noreply, stream_insert(socket, :posts, post, at: 0)}
   end
 
   @impl true

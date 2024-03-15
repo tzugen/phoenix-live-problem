@@ -7,28 +7,28 @@
   </:actions>
 </.header>
 
-<.table
-  id="posts"
-  rows={@streams.posts}
-  row_click={fn {_id, post} -> JS.navigate(~p"/posts/#{post}") end}
->
-  <:col :let={{_id, post}} label="Title"><%= post.title %></:col>
-  <:col :let={{_id, post}} label="Status"><%= post.status %></:col>
-  <:action :let={{_id, post}}>
-    <div class="sr-only">
-      <.link navigate={~p"/posts/#{post}"}>Show</.link>
+
+<div id="posts" phx-update="stream" class="space-y-4">
+
+ <%= for {id, post} <- @streams.posts do %>
+
+    <div id={id} class="flex flex-row items-center shadow rounded-lg p-4 space-x-4 border-2" phx-click={JS.navigate(~p"/posts/#{post}")} phx-hook="FadeIn">
+
+      <div class="flex-grow">
+        <div class="text-lg font-medium">
+          <%= post.title %>
+        </div>
+      </div>
+
+      <div class="flex-none">
+        <.link patch={~p"/posts/#{post}/edit"}>
+          <.icon name="hero-pencil-square" class="text-teal-500" />
+        </.link>
+      </div>
     </div>
-    <.link patch={~p"/posts/#{post}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, post}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: post.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
+
+  <% end %>
+</div>
 
 <.modal :if={@live_action in [:new, :edit]} id="post-modal" show on_cancel={JS.patch(~p"/posts")}>
   <.live_component

@@ -53,6 +53,7 @@ defmodule Debug.Blog do
     %Post{}
     |> Post.changeset(attrs)
     |> Repo.insert()
+    |> broadcast(:post_created)
   end
 
   @doc """
@@ -71,6 +72,7 @@ defmodule Debug.Blog do
     post
     |> Post.changeset(attrs)
     |> Repo.update()
+    |> broadcast(:post_updated)
   end
 
   @doc """
@@ -100,5 +102,16 @@ defmodule Debug.Blog do
   """
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
+  end
+
+
+  def subscribe do
+    Phoenix.PubSub.subscribe(Debug.PubSub, "posts")
+  end
+
+  def broadcast({:error, changeset}, _change_type), do: {:error, changeset}
+  def broadcast({:ok, post}, change_type) do
+    Phoenix.PubSub.broadcast(Debug.PubSub, "posts", {change_type, post})
+    {:ok, post}
   end
 end
